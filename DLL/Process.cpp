@@ -28,7 +28,7 @@ ADDRESS_VALUE Process::SearchMemory(void* p_pvStartAddress, DWORD p_dwSize, void
 {
 	unsigned char* pByte = (unsigned char*)p_pvStartAddress;
 
-	for (size_t i = 0; i < p_dwSize - p_dwBufferSize; i++)
+	for (size_t i = 0; i < static_cast<unsigned long long>(p_dwSize) - p_dwBufferSize; i++)
 	{
 		if (memcmp(pByte + i, p_pvBuffer, p_dwBufferSize) == 0)
 		{
@@ -168,7 +168,7 @@ SECTION_INFO Process::GetModuleSection(string p_sModule, string p_sSection)
 		{
 			oSectionData.dwSize = pSections[j].SizeOfRawData;
 			oSectionData.dwStartAddress = (ADDRESS_VALUE)hModule + pSections[j].VirtualAddress;
-			delete pSections;
+			delete[] pSections;
 			return oSectionData;
 		}
 	}

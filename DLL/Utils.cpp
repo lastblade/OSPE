@@ -169,7 +169,7 @@ char* Utils::strm(unsigned char count, ...)
 		length += len[i];
 	}
 
-	string = (char*)malloc(length + 1);
+	string = (char*)malloc(static_cast<size_t>(length) + 1);
 	string[length] = 0;
 	tmp = string;
 
