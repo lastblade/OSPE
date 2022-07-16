@@ -14,13 +14,12 @@
 
 ## Introduction
 
+
 OSPE is an open source sniffer and packet editor written in C# and C++.
 
 This program injects a custom DLL into target's process and setup hooks functions, this allows to execute arbitrary code, halt program execution and/or modify sent/received traffic data from the process.
 
-## Legal Disclaimer
 
-Attacking targets without prior mutual consent is illegal. The author is not responsible for any misuse or damage caused by this program.
 
 ## Features
 
@@ -57,3 +56,7 @@ Attacking targets without prior mutual consent is illegal. The author is not res
 
 
 ![Screen3](Screenshots/Screen3.jpg)
+
+## Legal Disclaimer
+
+Attacking targets without prior mutual consent is illegal. The author is not responsible for any misuse or damage caused by this program.
