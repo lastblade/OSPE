@@ -23,15 +23,15 @@
 #include <sstream>
 #include "Utils.h"
 
-//#define DBG_BLOCKPKT // para debuggear packets bloqueados
-//#define DBG_SENDPACKETDATA // para debuggear data de los packets 
+//#define DBG_BLOCKPKT // blocked packets debug
+//#define DBG_SENDPACKETDATA // packet data debug
 
 char readData[IPC_BLOCK_SIZE];
 
 
 
-// Agrega a info la informacion del socket (ip, port) y tambien el tipo de funcion y size del packet
-void SetInfo(SOCKET socket, Functions functionId, int length, PacketInfo* info)
+// Add to info the socket information (ip, port) and also the type of function and size of the packet
+bool SetInfo(SOCKET socket, Functions functionId, int length, PacketInfo* info)
 {
 	//char ipstr[INET6_ADDRSTRLEN];
 	BYTE ipver = IPV4;
@@ -44,7 +44,8 @@ void SetInfo(SOCKET socket, Functions functionId, int length, PacketInfo* info)
 		Utils::errorLog(Utils::strm(2, "getsockname: ", Utils::IntToString(WSAGetLastError())));
 
 	if (getpeername(socket, (struct sockaddr*)&addrRemote, &addr_len) == SOCKET_ERROR)
-		Utils::errorLog(Utils::strm(2, "getpeername: ", Utils::IntToString(WSAGetLastError())));
+		return false;
+		//Utils::errorLog(Utils::strm(2, "getpeername: ", Utils::IntToString(WSAGetLastError())));
 
 	// deal with both IPv4 and IPv6:
 	if (addrLocal.ss_family == AF_INET)
@@ -57,8 +58,10 @@ void SetInfo(SOCKET socket, Functions functionId, int length, PacketInfo* info)
 
 	}
 	else
-	{ // AF_INET6
-		//Falta implementar
+	{ //Not Implemented yet
+		
+		// AF_INET6
+		
 		Utils::errorLog("CRASH ALERT: IPv6 SOCKET NOT IMPLEMENTED");
 		//struct sockaddr_in6 *sock_addr = (struct sockaddr_in6 *)&addrFrom;
 		//info->portFrom = ntohs(sock_addr->sin6_port);
@@ -66,16 +69,19 @@ void SetInfo(SOCKET socket, Functions functionId, int length, PacketInfo* info)
 		ipver = IPV6;
 	}
 
-	//Envía la versión del protocolo a través del campo functionId
+	// Send the protocol version through "functionId"
+
 	info->functionId = (Functions)(functionId | ipver);
 	info->socketId = socket;
 	info->size = length;
+
+	return true;
 }
 
 // This method writes the packet to the memory mapped file then returns
-void ProcessPacket(Functions functionId, char* &buffer, int &length, SOCKET socket, bool &blocked)
+void ProcessPacket(Functions functionId, char*& buffer, int& length, SOCKET socket, bool& blocked)
 {
-	char * name = (char*)malloc(IPC_MAX_NAME);
+	char* name = (char*)malloc(IPC_MAX_NAME);
 	sprintf(name, "%s%u", "OSPEPACKETBUFF", GetCurrentProcessId());
 	static osIPC::Client client(name);
 
@@ -86,12 +92,15 @@ void ProcessPacket(Functions functionId, char* &buffer, int &length, SOCKET sock
 		Utils::errorLog("Fail to open MMF!!", 1);
 #endif
 		return;
-	}		
+	}
 
 	// Set needed packet info (ip, port, Function, Size)
 	PacketInfo info;
 	if (socket != NULL)
-		SetInfo(socket, functionId, (int)length, &info);
+	{
+		if (SetInfo(socket, functionId, (int)length, &info) != true)
+			return;
+	}
 	else {
 		info.functionId = functionId;
 		info.localIp = 0;
@@ -113,7 +122,7 @@ void ProcessPacket(Functions functionId, char* &buffer, int &length, SOCKET sock
 #endif
 
 	char* pBuff = (char *) malloc(sizeof(info) + length);
-	memcpy(pBuff, &info, sizeof(info));
+	memcpy(pBuff, &info, sizeof(info) + length);
 	memcpy(pBuff + sizeof(info), buffer, length);
 
 	bool breakpoint = false;
@@ -155,7 +164,7 @@ void ProcessPacket(Functions functionId, char*& buffer, int& length)
 
 void InjectPacket() 
 {
-	SOCKET s = (((UINT8)readData[2] << 8) | (UINT8)readData[1]);
+	SOCKET s = ((static_cast<size_t>((UINT8)readData[2]) << 8) | static_cast<size_t>((UINT8)readData[1]));
 	int len = (((UINT8)readData[4] << 8) | (UINT8)readData[3]);
 	const char * buf = &readData[5];
 	int flags = MSG_DONTROUTE;

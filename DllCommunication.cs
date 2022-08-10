@@ -203,9 +203,9 @@ namespace OSPE
                 writtenData[0] = (byte)sc;
                 Array.Copy(Encoding.ASCII.GetBytes(Settings.DLLEx), 0, writtenData, 1, Settings.DLLEx.Length);
             }
-            else if (sc == ServerCodes.SCODE_STARTCAPTURE || 
-                sc == ServerCodes.SCODE_STOPCAPTURE || 
-                sc == ServerCodes.SCODE_STOPFILTERING || 
+            else if (sc == ServerCodes.SCODE_STARTCAPTURE ||
+                sc == ServerCodes.SCODE_STOPCAPTURE ||
+                sc == ServerCodes.SCODE_STOPFILTERING ||
                 sc == ServerCodes.SCODE_UNLOADDLLEX)
             {
                 writtenData = new byte[1];
@@ -213,17 +213,38 @@ namespace OSPE
             }
             else throw new NotImplementedException("ServerCode " + (int)sc + " NOT IMPLEMENTED");
 
-            // Spawneamos un thread que puede esperar el mmfWriteTimeout para escribir el comando
-            //int threadCount = 0;
+            // Create a thread that waits for mmfWriteTimeout to write the command
 
+            //int threadCount = 0;
             //int myThreadIndex = Interlocked.Increment(ref threadCount);
 
-            if (CheckMMFileExists(_cmdMmfName))
-                cmdMMF = new SharedMemory.CircularBuffer(_cmdMmfName);
-            else
+            bool mmf_ready = false;
+            int mmf_fail = 0;
+
+            while (!mmf_ready)
             {
-                System.Windows.Forms.MessageBox.Show("ERROR, MMF does not exists!"); // No esta el archivo
-                return;
+
+                if (CheckMMFileExists(_cmdMmfName))
+                {
+                    cmdMMF = new SharedMemory.CircularBuffer(_cmdMmfName);
+                    mmf_ready = true;
+                }
+                else
+                {
+                    mmf_fail += 1;
+                    Thread.Sleep(1000);   
+                    
+                }
+
+                if (mmf_ready)
+                    break;
+
+                if (mmf_fail > 4)
+                {
+                    System.Windows.Forms.MessageBox.Show("ERROR, MMF does not exists!");
+                    return;
+
+                }
             }
 
             //The number of milliseconds to wait, or Timeout.Infinite (-1) to wait indefinitely. 

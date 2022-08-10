@@ -52,7 +52,7 @@ PuttyRecv_Typedef PuttyRecv_Original;
 
 SecureCRT_Typedef SecureCRT_Original;
 
-
+//These are the pointers to the functions of DLL Ex
 // Estos son punteros a las funciones de la DLL Ex, si las define entonces se llaman en las funciones hook de OspeDll
 T_SENDWS1 send_ws1 = NULL;
 T_RECVWS1 recv_ws1 = NULL;
@@ -445,6 +445,11 @@ int WINAPI MyWS2Send(SOCKET s, const char* buf, int len, int flags) {
 	// If blocked, don't call original function
 	if (blocked)
 		return NULL;
+
+	//char ch[] = "sitaram";
+	//char* xx = ch;
+	//xx[2] = 'y'; // it is the same as ch[2] = 'y';
+
 
 	pWS2Send(s, buf, len, flags);
 	return originalLen;

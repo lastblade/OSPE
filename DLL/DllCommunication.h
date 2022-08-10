@@ -28,7 +28,7 @@
 #define IPV6 128
 
 
-void SetInfo(SOCKET socket, Functions functionId, int length, PacketInfo* info);
+bool SetInfo(SOCKET socket, Functions functionId, int length, PacketInfo* info);
 void ProcessPacket(Functions functionId, char*& buffer, int& length, SOCKET socket, bool& blocked);
 void ProcessPacket(Functions functionId, char*& buffer, int& length);
 

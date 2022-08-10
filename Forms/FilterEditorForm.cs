@@ -113,7 +113,7 @@ namespace OSPE
             int j = -251;
             for (var i = 0; i < 501; i++)
             {
-                j = j + 1;
+                j++;
                 dataGridViewReplace2.Columns.Add("col" + i, j.ToString("D3")); //(j > 0) ? "+" + j.ToString("D3") : 
                 dataGridViewReplace2.Columns[i].Width = 30;
                 ((DataGridViewTextBoxColumn)dataGridViewReplace2.Columns[i]).MaxInputLength = 2;
