@@ -52,8 +52,8 @@ PuttyRecv_Typedef PuttyRecv_Original;
 
 SecureCRT_Typedef SecureCRT_Original;
 
-//These are the pointers to the functions of DLL Ex
-// Estos son punteros a las funciones de la DLL Ex, si las define entonces se llaman en las funciones hook de OspeDll
+
+// These are pointers to the Ex DLL functions, they are called in the OspeDll hook functions
 T_SENDWS1 send_ws1 = NULL;
 T_RECVWS1 recv_ws1 = NULL;
 T_SENDWS2 send_ws2 = NULL;
