@@ -124,7 +124,8 @@ int WINAPI DllMain ( void* hDLL, unsigned long dwReason, void*  Reserved) {
             {
                 using (StreamWriter sw = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + @"\DLL-Ex\mydll.c"))
                     sw.Write(fctb.Text);
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 txtCompilerOutput.Text = "Not implemented yet.";
                 return;

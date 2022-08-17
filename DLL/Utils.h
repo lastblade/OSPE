@@ -67,6 +67,7 @@ public:
 	static char* strm(unsigned char count, ...);
 	static char* GetSystemError(const char* msg);
 	static const char* GetBufferAsHex(char* buf, int len);
+	static void LOG(const char* txt);
 };
 
 #endif

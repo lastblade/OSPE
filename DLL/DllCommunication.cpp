@@ -1,27 +1,11 @@
-﻿/*
-* OSPE - Open Source Packet Editor
-* Copyright(C) 2018-2019 Javier Pereda <https://github.com/elecyb>
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "DllCommunication.h"
 #include "OspeDll.h"
 #include "FilterManager.h"
 #include <sstream>
 #include "Utils.h"
+#include "HookedFunctions.h"
+
 
 //#define DBG_BLOCKPKT // blocked packets debug
 //#define DBG_SENDPACKETDATA // packet data debug
@@ -81,6 +65,7 @@ bool SetInfo(SOCKET socket, Functions functionId, int length, PacketInfo* info)
 // This method writes the packet to the memory mapped file then returns
 void ProcessPacket(Functions functionId, char*& buffer, int& length, SOCKET socket, bool& blocked)
 {
+	
 	char* name = (char*)malloc(IPC_MAX_NAME);
 	sprintf(name, "%s%u", "OSPEPACKETBUFF", GetCurrentProcessId());
 	static osIPC::Client client(name);
@@ -94,14 +79,20 @@ void ProcessPacket(Functions functionId, char*& buffer, int& length, SOCKET sock
 		return;
 	}
 
+	
+
 	// Set needed packet info (ip, port, Function, Size)
 	PacketInfo info;
 	if (socket != NULL)
 	{
-		if (SetInfo(socket, functionId, (int)length, &info) != true)
+		if ((int)length == 0) // ignore empty packets
 			return;
+
+		if (SetInfo(socket, functionId, (int)length, &info) != true)
+			return;		
 	}
-	else {
+	else 
+	{
 		info.functionId = functionId;
 		info.localIp = 0;
 		info.localPort = 0;
@@ -121,9 +112,14 @@ void ProcessPacket(Functions functionId, char*& buffer, int& length, SOCKET sock
 	Utils::errorLog((char*)sinfo.str().c_str(), 2);
 #endif
 
-	char* pBuff = (char *) malloc(sizeof(info) + length);
-	memcpy(pBuff, &info, sizeof(info) + length);
+
+		
+
+	char* pBuff = (char *) malloc(sizeof(info) + sizeof(buffer) + length + 1);
+	memcpy(pBuff, &info, sizeof(info));
 	memcpy(pBuff + sizeof(info), buffer, length);
+
+	
 
 	bool breakpoint = false;
 	if (isFiltering)
@@ -139,6 +135,8 @@ void ProcessPacket(Functions functionId, char*& buffer, int& length, SOCKET sock
 				breakpoint = true;							
 		else
 			blocked = true;
+	
+	
 
 	client.write(pBuff, sizeof(info) + length); // Send the packet to ospe
 
@@ -151,9 +149,11 @@ void ProcessPacket(Functions functionId, char*& buffer, int& length, SOCKET sock
 		length = newLength;
 		buffer = (char *)malloc(length);
 		memcpy((void*)buffer, &readData[3], length); // read new data
-	}
+	}	
 	
 	free(pBuff);
+
+	
 }
 
 void ProcessPacket(Functions functionId, char*& buffer, int& length) 
@@ -165,11 +165,12 @@ void ProcessPacket(Functions functionId, char*& buffer, int& length)
 void InjectPacket() 
 {
 	SOCKET s = ((static_cast<size_t>((UINT8)readData[2]) << 8) | static_cast<size_t>((UINT8)readData[1]));
-	int len = (((UINT8)readData[4] << 8) | (UINT8)readData[3]);
+	int len = ((static_cast<size_t>((UINT8)readData[4]) << 8) | static_cast<size_t>((UINT8)readData[3]));
 	const char * buf = &readData[5];
 	int flags = MSG_DONTROUTE;
 	send(s, buf, len, flags);
 }
+
 
 // Command reader thread worker
 DWORD WINAPI Command_Reader(LPVOID context)
@@ -217,3 +218,4 @@ DWORD WINAPI Command_Reader(LPVOID context)
     // Success
     return 0;
 };
+

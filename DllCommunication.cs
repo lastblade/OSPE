@@ -232,8 +232,7 @@ namespace OSPE
                 else
                 {
                     mmf_fail += 1;
-                    Thread.Sleep(1000);   
-                    
+                    Thread.Sleep(1000);
                 }
 
                 if (mmf_ready)
@@ -243,7 +242,6 @@ namespace OSPE
                 {
                     System.Windows.Forms.MessageBox.Show("ERROR, MMF does not exists!");
                     return;
-
                 }
             }
 
